@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portofolio</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background: #f4f7f9;
+        color: #333;
+    }
+    .container {
+        max-width: 900px;
+        margin: auto;
+        padding: 20px;
+    }
+    .header {
+        text-align: center;
+        margin-bottom: 15px;
+    }
+    .header h1 {
+        margin: 0;
+        font-size: 1.8em;
+        color: #2c7be5;
+    }
+    .summary {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        background: #fff;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+    .summary-item {
+        flex: 1 1 45%;
+        margin: 10px 0;
+    }
+    .summary-item h2 {
+        margin: 0;
+        font-size: 1.2em;
+        color: #666;
+    }
+    .summary-item p {
+        margin: 5px 0 0;
+        font-size: 1.4em;
+        font-weight: bold;
+        color: #2c7be5;
+    }
+    .date-info {
+        font-size: 0.9em;
+        color: #777;
+    }
+    .filter {
+        margin-bottom: 15px;
+        text-align: right;
+    }
+    select {
+        padding: 8px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        background: #fff;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    thead {
+        background: #2c7be5;
+        color: #fff;
+    }
+    th, td {
+        padding: 12px 15px;
+        text-align: left;
+    }
+    tr:nth-child(even) {
+        background: #f8f9fa;
+    }
+    @media (max-width: 600px) {
+        .summary {
+            flex-direction: column;
+        }
+        .summary-item {
+            flex: 1 1 100%;
+        }
+        th, td {
+            font-size: 0.9em;
+            padding: 10px;
+        }
+        .filter {
+            text-align: left;
+        }
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- Nama Pemilik -->
+    <div class="header">
+        <h1>Portofolio - Saroon</h1>
+    </div>
+
+    <!-- Ringkasan -->
+    <div class="summary">
+        <div class="summary-item">
+            <h2>Total Saldo</h2>
+            <p id="totalSaldo">Rp 11.100.000</p>
+            <div id="TotalPNL" style="color:green;">+Rp1.100.000 (+11%)</div>
+        </div>
+        <div class="summary-item">
+            <h2>Daily PNL</h2>
+            <p id="DailyPNL" style="color:green;">+Rp 100.000 (+1%)</p>
+            <div class="date-info" id="lastUpdate">Update: 13 Agustus 2025</div>
+        </div>
+    </div>
+
+    <!-- Filter -->
+    <div class="filter">
+        <label for="filterPeriode">Filter Periode: </label>
+        <select id="filterPeriode" onchange="filterData()">
+            <option value="hari-ini">Hari Ini</option>
+            <option value="minggu-ini">Minggu Ini</option>
+            <option value="minggu-lalu">Minggu Lalu</option>
+            <option value="bulan-ini">Bulan Ini</option>
+            <option value="bulan-lalu">Bulan Lalu</option>
+        </select>
+    </div>
+
+    <!-- Tabel Portofolio -->
+    <table>
+        <thead>
+            <tr>
+                <th>Pairs</th>
+                <th>Posisi</th>
+                <th>PNL</th>
+                <th>Tanggal</th>
+            </tr>
+        </thead>
+        <tbody id="portfolioTable"></tbody>
+    </table>
+</div>
+
+<script>
+// Data transaksi
+const transactions = [
+    { pair: "XAU/USD", posisi: "BUY 0.01 Lot", pnl: 100000, tanggal: "2025-08-05" },
+    { pair: "XAU/USD", posisi: "BUY 0.01 Lot", pnl: 100000, tanggal: "2025-08-06" },
+    { pair: "XAU/USD", posisi: "BUY 0.01 Lot", pnl: 100000, tanggal: "2025-08-07" },
+    { pair: "XAU/USD", posisi: "BUY 0.01 Lot", pnl: 100000, tanggal: "2025-08-08" },
+    { pair: "XAU/USD", posisi: "BUY 0.01 Lot", pnl: 100000, tanggal: "2025-08-09" },
+    { pair: "XAU/USD", posisi: "BUY 0.01 Lot", pnl: 100000, tanggal: "2025-08-10" },
+    { pair: "XAU/USD", posisi: "BUY 0.01 Lot", pnl: 100000, tanggal: "2025-08-11" },
+    { pair: "XAU/USD", posisi: "BUY 0.01 Lot", pnl: 100000, tanggal: "2025-08-12" },
+    { pair: "XAU/USD", posisi: "BUY 0.01 Lot", pnl: 100000, tanggal: "2025-08-13" },
+    { pair: "XAU/USD", posisi: "BUY 0.01 Lot", pnl: 100000, tanggal: "2025-08-14" },
+]
+
+// Fungsi render tabel
+function renderTable(data) {
+    const table = document.getElementById("portfolioTable");
+    table.innerHTML = "";
+    data.forEach(row => {
+        let pnlColor = row.pnl >= 0 ? "green" : "red";
+        let formattedPNL = (row.pnl >= 0 ? "+" : "") + "Rp " + row.pnl.toLocaleString("id-ID");
+        let tr = `<tr>
+            <td>${row.pair}</td>
+            <td>${row.posisi}</td>
+            <td style="color:${pnlColor};">${formattedPNL}</td>
+            <td>${row.tanggal}</td>
+        </tr>`;
+        table.innerHTML += tr;
+    });
+}
+
+// Fungsi filter data
+function filterData() {
+    let periode = document.getElementById("filterPeriode").value;
+    let now = new Date();
+    let start, end;
+
+    if (periode === "hari-ini") {
+        start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        end = new Date(start);
+        end.setDate(end.getDate() + 1);
+    } 
+    else if (periode === "minggu-ini") {
+        let day = now.getDay(); // 0 = Minggu
+        start = new Date(now);
+        start.setDate(now.getDate() - day);
+        end = new Date(start);
+        end.setDate(end.getDate() + 7);
+    } 
+    else if (periode === "minggu-lalu") {
+        let day = now.getDay();
+        start = new Date(now);
+        start.setDate(now.getDate() - day - 7);
+        end = new Date(start);
+        end.setDate(end.getDate() + 7);
+    } 
+    else if (periode === "bulan-ini") {
+        start = new Date(now.getFullYear(), now.getMonth(), 1);
+        end = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    } 
+    else if (periode === "bulan-lalu") {
+        start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        end = new Date(now.getFullYear(), now.getMonth(), 1);
+    }
+
+    let filtered = transactions.filter(item => {
+        let date = new Date(item.tanggal);
+        return date >= start && date < end;
+    });
+
+    renderTable(filtered);
+}
+
+// Render awal (Hari Ini)
+filterData();
+</script>
+
+</body>
+</html>
